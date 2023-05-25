@@ -4,6 +4,55 @@
   connection: local
 
   tasks:
+    - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+      openssh_keypair:
+        path: /tmp/id_ssh_rsa
+
+    - name: create /var/www/ timestamp directory
+      file:
+        dest: "/var/www/billabear/"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0700
+
+    - name: add directory to safe directory config
+      command: git config --global --add safe.directory /var/www/billabear
+
+    - name: Clone billabear
+      git:
+        dest: "/var/www/billabear"
+        repo: https://github.com/billabear/billabear.git
+        depth: 1
+        clone: yes
+        version: main
+        key_file: /tmp/id_ssh_rsa
+        accept_hostkey: yes
+
+    - name: Add yarn Apt signing key, will not download if present
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+    - name: Install the gpg key for nodejs LTS
+      apt_key:
+        url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+        state: present
+
+    - name: Install the nodejs LTS repos
+      apt_repository:
+          repo: "deb https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+          state: present
+          update_cache: yes
+
+    - name: Add yarn sources list
+      become: yes
+      lineinfile: >
+          line="deb https://dl.yarnpkg.com/debian/ stable main"
+          dest=/etc/apt/sources.list.d/yarn.list
+          state=present
+          create=yes
+
     - name: Add ondrej/php
       ansible.builtin.apt_repository:
         repo: ppa:ondrej/php
@@ -13,6 +62,9 @@
         update_cache: yes 
         state: latest
         name: [
+          'yarn',
+          'software-properties-common',
+          'nodejs',
           'php8.2-dev', 
           'php8.2-cli', 
           'php8.2-curl', 
@@ -30,3 +82,53 @@
           'php8.2-fpm', 
           'wkhtmltopdf'
           ]
+
+
+    - name: Change permissions
+      file:
+        dest: "/var/www/billabear/"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0700
+        recurse: yes
+
+    - name: Make public writable (?)
+      file:
+        path: /var/www/billabear/public
+        state: directory
+        recurse: yes
+        mode: '0777'
+
+    - name: Copy file with owner and permissions
+      copy:
+        src: /tmp/env
+        dest: /var/www/billabear/.env.local
+        owner: www-data
+        group: www-data
+
+    - name: install composer
+      shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      args:
+        creates: /usr/local/bin/composer
+
+    - composer:
+        command: install
+        working_dir:  "/var/www/billabear"
+      become: yes
+      become_user: www-data
+
+    - name: install yarn
+      command: yarn install
+        chdir="/var/www/billabear"
+
+    - name: install encore
+      command: yarn encore production
+        chdir="/var/www/billabear"
+
+    - name: Make cache writable
+      file:
+        path: /var/www/billabear/var
+        state: directory
+        recurse: yes
+        mode: '0777'          

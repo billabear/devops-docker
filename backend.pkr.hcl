@@ -18,7 +18,7 @@ build {
   ]
 
   provisioner "shell" {
-    script="web/build.sh"
+    script="base/build.sh"
   }
   provisioner "file" {
     source      = "web/entrypoint.sh"
@@ -29,6 +29,11 @@ build {
     inline = [
       "chmod +x /entrypoint.sh"
     ]
+  }
+
+  provisioner "file" {
+    source      = "web/env.j2"
+    destination = "/tmp/env"
   }
 
   provisioner "ansible-local" {
@@ -42,7 +47,7 @@ build {
 
    post-processors {
     post-processor "docker-tag" {
-      repository = "billabear/web"
+      repository = "billabear/backend"
       tags       = ["0.1"]
       only       = ["docker.php-fpm"]
     }
