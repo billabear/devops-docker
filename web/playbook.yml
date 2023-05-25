@@ -1,0 +1,32 @@
+---
+- name: php-fpm
+  hosts: 127.0.0.1
+  connection: local
+
+  tasks:
+    - name: Add ondrej/php
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/php
+
+    - name: install packages
+      apt: 
+        update_cache: yes 
+        state: latest
+        name: [
+          'php8.2-dev', 
+          'php8.2-cli', 
+          'php8.2-curl', 
+          'php8.2-dom', 
+          'php8.2-intl', 
+          'php8.2-xml', 
+          'php8.2-mbstring', 
+          'php8.2-zip', 
+          'php8.2-redis', 
+          'php8.2-mysql', 
+          'php8.2-pgsql', 
+          'php8.2-amqp', 
+          'php8.2-mongodb', 
+          'php8.2-gd', 
+          'php8.2-fpm', 
+          'wkhtmltopdf'
+          ]
