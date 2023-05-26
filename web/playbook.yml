@@ -10,18 +10,18 @@
 
     - name: create /var/www/ timestamp directory
       file:
-        dest: "/var/www/billabear/"
+        dest: "/var/www/"
         state: directory
         owner: www-data
         group: www-data
         mode: 0700
 
     - name: add directory to safe directory config
-      command: git config --global --add safe.directory /var/www/billabear
+      command: git config --global --add safe.directory /var/www
 
     - name: Clone billabear
       git:
-        dest: "/var/www/billabear"
+        dest: "/var/www"
         repo: https://github.com/billabear/billabear.git
         depth: 1
         clone: yes
@@ -86,7 +86,7 @@
 
     - name: Change permissions
       file:
-        dest: "/var/www/billabear/"
+        dest: "/var/www/"
         state: directory
         owner: www-data
         group: www-data
@@ -95,7 +95,7 @@
 
     - name: Make public writable (?)
       file:
-        path: /var/www/billabear/public
+        path: /var/www/public
         state: directory
         recurse: yes
         mode: '0777'
@@ -103,7 +103,7 @@
     - name: Copy file with owner and permissions
       copy:
         src: /tmp/env
-        dest: /var/www/billabear/.env.local
+        dest: /var/www/.env.local
         owner: www-data
         group: www-data
 
@@ -114,21 +114,21 @@
 
     - composer:
         command: install
-        working_dir:  "/var/www/billabear"
+        working_dir:  "/var/www"
       become: yes
       become_user: www-data
 
     - name: install yarn
       command: yarn install
-        chdir="/var/www/billabear"
+        chdir="/var/www"
 
     - name: install encore
       command: yarn encore production
-        chdir="/var/www/billabear"
+        chdir="/var/www"
 
     - name: Make cache writable
       file:
-        path: /var/www/billabear/var
+        path: /var/www/var
         state: directory
         recurse: yes
         mode: '0777'          

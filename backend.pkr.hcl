@@ -1,6 +1,11 @@
 source "docker" "php-fpm" {
   image  = "ubuntu:20.04"
   commit = true
+  changes = [
+    "EXPOSE 9000",
+    "ONBUILD RUN ln -sf /dev/stdout /var/log/php8.2-fpm.log",
+    "ENTRYPOINT [\"/entrypoint.sh\"]"
+  ]
 }
 variable "docker_login" {
   type    = string
@@ -18,7 +23,7 @@ build {
   ]
 
   provisioner "shell" {
-    script="base/build.sh"
+    script="web/build.sh"
   }
   provisioner "file" {
     source      = "web/entrypoint.sh"
