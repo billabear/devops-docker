@@ -47,13 +47,13 @@ build {
 
   provisioner "file" {
     source      = "./web/overrides.conf"
-    destination = "/etc/php/8.2/fpm/pool.d/z-overrides.conf"
+    destination = "/etc/php/8.4/fpm/pool.d/z-overrides.conf"
   }
 
    post-processors {
     post-processor "docker-tag" {
       repository = "billabear/backend"
-      tags       = ["0.1"]
+      tags       = ["2025.01", "2025.01.01", "latest"]
       only       = ["docker.php-fpm"]
     }
 
